@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DivEye 主页</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-4.6.2/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-4.6.2/js/bootstrap.min.js' %}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/nodeStatus/">DivEye</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/index/?nodeName=mainServer">主机监控 <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/UserUse/">用户监控</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h1 id="nodeH" style="text-align: center; margin-top: 20px"></h1>
+<script>
+    var queryString = window.location.search;
+    var urlParams = new URLSearchParams(queryString);
+    var myParam = urlParams.get('nodeName');
+    document.getElementById('nodeH').innerHTML = '主机信息:' + myParam;
+</script>
+
+<div class="container" style="display: flex; width: 90%;height: 45%">
+    <div id="cpuInfoChart" style="width: 600px;height: 400px; margin: auto;"></div>
+    <div id="memInfoChart" style="width: 600px;height: 400px; margin: auto;"></div>
+</div>
+
+<div class="container" style="display: flex; width: 90%;height: 600px">
+    <div id="lineChart" style="width: 100%;height: 600px; margin: auto;"></div>
+</div>
+
+<div class="container" style="display: flex; width: 90%;margin-top:30px;">
+    <div id="gpu_chart" style="width: 100%;height: 600px; margin: auto;"></div>
+</div>
+
+<script src="{% static 'js/jquery-3.6.4.js' %}"></script>
+<script src="{% static 'js/echarts.min.js' %}"></script>
+<script>
+    var cpuChart = echarts.init(document.getElementById('cpuInfoChart'));
+    var memChart = echarts.init(document.getElementById('memInfoChart'));
+    var lineChart = echarts.init(document.getElementById('lineChart'));
+    var gpuChart=echarts.init(document.getElementById('gpu_chart'));
+    var queryString = window.location.search;
+    var urlParams = new URLSearchParams(queryString);
+    var nodeName = urlParams.get('nodeName');
+
+    function updateData() {
+        $.ajax({
+            url: "http://127.0.0.1:8000/FrqInfo/",
+            type: 'POST',
+            data: JSON.stringify({nodeName: nodeName}),
+            success: function (data) {
+                var option = {
+                    title: {
+                        text: 'CPU使用情况',
+                        left: 'center',
+                        top: 'center'
+                    },
+                    series: [
+                        {
+                            type: 'pie',
+                            data: [
+                                {
+                                    value: data['cpu_usage'],
+                                    name: 'CPU 使用'
+                                },
+                                {
+                                    value: 1.0 - data['cpu_usage'],
+                                    name: 'CPU 空余'
+                                }
+                            ],
+                            radius: ['40%', '70%']
+                        }
+                    ]
+                };
+                cpuChart.setOption(option);
+                option = {
+                    title: {
+                        text: '内存使用情况',
+                        left: 'center',
+                        top: 'center'
+                    },
+                    series: [
+                        {
+                            type: 'pie',
+                            data: [
+                                {
+                                    value: data['total_ram'] - data['free_ram'],
+                                    name: '内存使用'
+                                },
+                                {
+                                    value: data['free_ram'],
+                                    name: '内存空余'
+                                }
+                            ],
+                            radius: ['40%', '70%']
+                        }
+                    ]
+                };
+                memChart.setOption(option);
+
+
+            }, error: function () {
+
+                console.log("ajax can't get data");
+            }
+
+        })
+    }
+
+    function loadDB() {
+        $.ajax({
+            url: "http://127.0.0.1:8000/FrqDB/",
+            type: 'POST',
+            data: JSON.stringify({nodeName: nodeName}),
+            success: function (option) {
+                lineChart.setOption(option);
+            }
+        })
+    }
+
+    function updateGPU(){
+        $.ajax({
+            url: "http://127.0.0.1:8000/FrqGPU/",
+            type: 'POST',
+            data: JSON.stringify({nodeName: nodeName}),
+            success: function (option) {
+                const dataLength = option.yAxis.data.length;
+                gpuChart.resize({height: dataLength * 80+20});
+                gpuChart.setOption(option);
+            }
+        })
+    }
+
+    updateGPU();
+    setInterval(updateData, 3000);
+    setInterval(updateGPU,3000);
+    loadDB();
+    updateData();
+</script>
+</body>
+</html>

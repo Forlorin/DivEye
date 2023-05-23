@@ -1,0 +1,17 @@
+#include "FrqEye.h"
+#include "DBUtil.h"
+#include "initial.h"
+#include <map>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <sstream>
+#include <iomanip>
+#include <sys/sysinfo.h>
+#include "Deliver.h"
+#include "httpd.h"
+#include "conf.h"
+#include <thread>
+void test();
+void initAll();

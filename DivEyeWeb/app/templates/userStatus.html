@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nodeStatus</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-4.6.2/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-4.6.2/js/bootstrap.min.js' %}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/nodeStatus/">DivEye</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/index/?nodeName=mainServer">主机监控 <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/UserUse/">用户监控</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="width: 90%; margin:20px auto auto auto; text-align: center">
+    <label style="left: 50%">选择结点和用户以查看用户使用情况：</label>
+    <div class="container" style="display: flex; width: 100%;height: 100px; margin: 20px auto auto;">
+        <form action="" method="post" id="user_use_select" style="width: 100%;">
+            <div class="container" style="display: flex; width: 100%">
+                <div style="margin: auto; width: 40%; left: 25%" >
+                    <label for="node_select" class="form-check-label">结点</label>
+                    <select id="node_select" name="node_name" class="custom-select" >
+                        <option value="All">All</option>
+                        {% for obj in node_list %}
+                            <option value={{ obj }}>{{ obj }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin: auto;width: 40%; left: 75%">
+                    <label for="user_select" class="form-check-label">用户</label>
+                    <select id="user_select" name="user_name" class="custom-select">
+                        <option>All</option>
+                        {% for obj in user_list %}
+                            <option value={{ obj }}>{{ obj }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+    <button class="btn btn-primary" onclick="getUserUse()"
+            style="text-align:center; height: 40px;width: 100px; left: 50%">确定
+    </button>
+</div>
+
+
+<div class="container" style="display: flex; width: 90%;height: 600px">
+    <div id="UserUseChart" style="width: 100%;height: 400px; margin: auto;"></div>
+</div>
+<script src="{% static 'js/jquery-3.6.4.js' %}"></script>
+<script src="{% static 'js/echarts.min.js' %}"></script>
+<script>
+    var user_use_chart = echarts.init(document.getElementById('UserUseChart'));
+    const user_select = document.getElementById('user_select')
+    const node_select = document.getElementById('node_select')
+
+    function getUserUse() {
+        var user = user_select.value;
+        var node = node_select.value;
+        console.log(document.getElementById('user_select').value)
+        $.ajax({
+            url: "http://127.0.0.1:8000/UserSelect/",
+            type: 'POST',
+            data: JSON.stringify({node: node, user: user}),
+            success: function (option) {
+                const dataLength = option.yAxis.data.length;
+                user_use_chart.resize({height: dataLength * 120+20});
+                user_use_chart.setOption(option);
+            }
+        })
+    }
+
+    getUserUse();
+</script>
+</body>
+</html>

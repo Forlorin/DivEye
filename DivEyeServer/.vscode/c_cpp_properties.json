@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/include/",
+                "${workspaceFolder}/src/**",
+                "/usr/include/**",
+                "${workspaceFolder}/lib/libpq/include/",
+                "${workspaceFolder}/lib/pqxx/include/",
+                "${workspaceFolder}/lib/libhv/include/",
+                "${workspaceFolder}/lib/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}
